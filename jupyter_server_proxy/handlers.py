@@ -543,6 +543,11 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         return await ensure_async(self.proxy(self.port, path))
 
     async def open(self, path):
+        if self.mappath:
+            if callable(self.mappath):
+                path = call_with_asked_args(self.mappath, {'path': path})
+            else:
+                path = self.mappath.get(path, path)
         await self.ensure_process()
         return await super().open(self.port, path)
 
