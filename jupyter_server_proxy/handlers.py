@@ -496,6 +496,12 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         # Invariant here should be: when lock isn't being held, either 'proc' is in state &
         # running, or not.
         async with self.state['proc_lock']:
+            # always restart if the process has exited without error
+            # (otherwise, users get a 500 error and no way to restart other
+            # than restarting the whole notebook server process)
+            if 'proc' in self.state:
+                if self.state['proc'].returncode == 0:
+                    del self.state['proc']
             if 'proc' not in self.state:
                 # FIXME: Prevent races here
                 # FIXME: Handle graceful exits of spawned processes here
